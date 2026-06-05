@@ -6,7 +6,7 @@ local remote = ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("Tool
 local foliage = workspace:WaitForChild("Map"):WaitForChild("Foliage")
 
 local running = false
-local HITS_PER_TREE = 100
+local HITS_PER_TREE = 500
 local HIT_DELAY = 0.1
 local TRAVEL_DELAY = 0.4
 
@@ -14,6 +14,8 @@ local FOOD_NAMES = {"Cake", "Carrot", "Morsel", "Berry"}
 local METAL_NAMES = {"Bolt", "Broken Fan", "Broken Microwave", "Chair", "Sheet Metal", "Tyre"}
 local AMMO_NAMES = {"Rifle Ammo", "Revolver Ammo"}
 local FUEL_NAMES = {"Oil Barrel", "Dynamite", "Coal"}
+local HEAL_NAMES = {"MedKit", "Bandage", "Med Kit"}
+local WEAPON_NAMES = {"Revolver", "Spear", "Rifle"}
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
@@ -27,8 +29,8 @@ local Window = Rayfield:CreateWindow({
     KeySystem = false
 })
 
-local TreeTab = Window:CreateTab("🌲 Trees", 4483362458)
-local BringTab = Window:CreateTab("🎒 Bring", 4483362458)
+local TreeTab = Window:CreateTab("Trees", 4483362458)
+local BringTab = Window:CreateTab("Bring Items", 4483362458)
 
 -- =====================
 --      TREE TAB
@@ -93,7 +95,7 @@ local function run()
         axe = getAxe()
 
         if not axe then
-            setStatus("Axe lost! Stopping.")
+            setStatus("Axe lost or not found! Stopping.")
             running = false
             break
         end
@@ -161,9 +163,9 @@ TreeTab:CreateToggle({
 
 TreeTab:CreateSlider({
     Name = "Hits Per Tree",
-    Range = {1, 100},
+    Range = {1, 500},
     Increment = 1,
-    CurrentValue = 100,
+    CurrentValue = 500,
     Flag = "HitsSlider",
     Callback = function(value)
         HITS_PER_TREE = value
@@ -174,7 +176,7 @@ TreeTab:CreateSlider({
     Name = "Hit Delay (ms)",
     Range = {1, 2000},
     Increment = 50,
-    CurrentValue = 1,
+    CurrentValue = 10,
     Flag = "DelaySlider",
     Callback = function(value)
         HIT_DELAY = value / 1000
@@ -216,7 +218,7 @@ local function bringItems(nameList, label)
     return count
 end
 
-BringTab:CreateLabel(" gui made by tw1tchy/DLXE/mentalplays :3")
+BringTab:CreateLabel("gui made by tw1tchy/DLXE/mentalplays :3")
 BringTab:CreateDivider()
 
 BringTab:CreateButton({
@@ -248,9 +250,23 @@ BringTab:CreateButton({
 })
 
 BringTab:CreateButton({
+    Name = "Weapons",
+    Callback = function()
+        bringItems(WEAPON_NAMES, "Bring Weapons")
+    end
+})
+
+BringTab:CreateButton({
     Name = "Fuel",
     Callback = function()
         bringItems(FUEL_NAMES, "Bring Fuel")
+    end
+})
+
+BringTab:CreateButton({
+    Name = "Heals",
+    Callback = function()
+        bringItems(HEAL_NAMES, "Bring Heals")
     end
 })
 
@@ -260,10 +276,9 @@ BringTab:CreateButton({
     Name = "ALL ITEMS",
     Callback = function()
         local all = {}
-        for _, t in ipairs({{"Log", "Small Log", "Wood"}, FOOD_NAMES, METAL_NAMES, AMMO_NAMES, FUEL_NAMES}) do
+        for _, t in ipairs({{"Log", "Small Log", "Wood"}, FOOD_NAMES, METAL_NAMES, AMMO_NAMES, FUEL_NAMES, HEAL_NAMES, WEAPON_NAMES}) do
             for _, n in ipairs(t) do table.insert(all, n) end
         end
         bringItems(all, "Bring Everything")
     end
 })
-  
