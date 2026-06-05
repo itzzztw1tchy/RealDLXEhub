@@ -174,7 +174,7 @@ TreeTab:CreateSlider({
     Name = "Hit Delay (ms)",
     Range = {1, 2000},
     Increment = 50,
-    CurrentValue = 100,
+    CurrentValue = 1,
     Flag = "DelaySlider",
     Callback = function(value)
         HIT_DELAY = value / 1000
@@ -216,7 +216,7 @@ local function bringItems(nameList, label)
     return count
 end
 
-BringTab:CreateLabel(" gui made by tw1tchy/DLXE/mentalplays :3 )
+BringTab:CreateLabel(" gui made by tw1tchy/DLXE/mentalplays :3")
 BringTab:CreateDivider()
 
 BringTab:CreateButton({
