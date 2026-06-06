@@ -2,10 +2,8 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
 local remote = ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("ToolDamageObject")
 local foliage = workspace:WaitForChild("Map"):WaitForChild("Foliage")
 local camera = workspace.CurrentCamera
@@ -25,514 +23,40 @@ local FUEL_NAMES = {"Oil Barrel", "Dynamite", "Coal"}
 local HEAL_NAMES = {"MedKit", "Bandage", "Med Kit"}
 local WEAPON_NAMES = {"Revolver", "Spear", "Rifle"}
 
--- =====================
---      GUI SETUP
--- =====================
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "DLXEHUB"
-screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-screenGui.Parent = playerGui
+local Luna = loadstring(game:HttpGet("https://raw.githubusercontent.com/Nebula-Softworks/Luna-Interface-Suite/refs/heads/master/source.lua", true))()
 
--- Main window
-local mainFrame = Instance.new("Frame")
-mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 320, 0, 420)
-mainFrame.Position = UDim2.new(0.5, -160, 0.5, -210)
-mainFrame.BackgroundColor3 = Color3.fromRGB(5, 0, 15)
-mainFrame.BorderSizePixel = 0
-mainFrame.Active = true
-mainFrame.Draggable = true
-mainFrame.Parent = screenGui
-
-local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, 16)
-mainCorner.Parent = mainFrame
-
--- Gradient background
-local gradient = Instance.new("UIGradient")
-gradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 0, 120)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(30, 0, 60)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
+local Window = Luna:CreateWindow({
+    Name = "DLXE HUB",
+    Subtitle = "by tw1tchy/DLXE/mentalplays",
+    LogoID = nil,
+    LoadingEnabled = true,
+    LoadingTitle = "DLXE HUB",
+    LoadingSubtitle = "99 Nights in the Forest",
+    ConfigSettings = {
+        RootFolder = nil,
+    },
+    Discord = {
+        Enabled = true,
+        Invite = "6egUXcwmdc",
+        RememberJoins = false,
+    },
+    KeySystem = false,
 })
-gradient.Rotation = 135
-gradient.Parent = mainFrame
 
--- Animated gradient rotation
-local gradientAngle = 135
-RunService.RenderStepped:Connect(function()
-    gradientAngle = gradientAngle + 0.15
-    if gradientAngle > 360 then gradientAngle = 0 end
-    gradient.Rotation = gradientAngle
-end)
-
--- Outer glow stroke
-local stroke = Instance.new("UIStroke")
-stroke.Color = Color3.fromRGB(150, 0, 255)
-stroke.Thickness = 1.5
-stroke.Transparency = 0.3
-stroke.Parent = mainFrame
-
--- Pulsing stroke animation
-local strokePulse = true
-RunService.RenderStepped:Connect(function()
-    local t = tick()
-    stroke.Transparency = 0.2 + math.sin(t * 2) * 0.2
-end)
-
--- Topbar
-local topBar = Instance.new("Frame")
-topBar.Size = UDim2.new(1, 0, 0, 45)
-topBar.BackgroundColor3 = Color3.fromRGB(60, 0, 100)
-topBar.BackgroundTransparency = 0.3
-topBar.BorderSizePixel = 0
-topBar.Parent = mainFrame
-
-local topCorner = Instance.new("UICorner")
-topCorner.CornerRadius = UDim.new(0, 16)
-topCorner.Parent = topBar
-
-local topGrad = Instance.new("UIGradient")
-topGrad.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(120, 0, 200)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 80))
+local TreeTab = Window:CreateTab({
+    Name = "Trees",
+    Icon = "tree",
 })
-topGrad.Rotation = 90
-topGrad.Parent = topBar
 
--- Title
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -50, 1, 0)
-title.Position = UDim2.new(0, 15, 0, 0)
-title.BackgroundTransparency = 1
-title.Text = "DLXE HUB"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.TextSize = 18
-title.Font = Enum.Font.GothamBold
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.Parent = topBar
+local BringTab = Window:CreateTab({
+    Name = "Bring",
+    Icon = "package",
+})
 
--- Subtitle
-local subtitle = Instance.new("TextLabel")
-subtitle.Size = UDim2.new(1, -50, 0, 15)
-subtitle.Position = UDim2.new(0, 15, 0, 28)
-subtitle.BackgroundTransparency = 1
-subtitle.Text = "gui by tw1tchy/DLXE/mentalplays"
-subtitle.TextColor3 = Color3.fromRGB(180, 100, 255)
-subtitle.TextSize = 10
-subtitle.Font = Enum.Font.Gotham
-subtitle.TextXAlignment = Enum.TextXAlignment.Left
-subtitle.Parent = mainFrame
-
--- Close button
-local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 30, 0, 30)
-closeBtn.Position = UDim2.new(1, -38, 0, 8)
-closeBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 50)
-closeBtn.BorderSizePixel = 0
-closeBtn.Text = "X"
-closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeBtn.TextSize = 13
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.Parent = topBar
-Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 8)
-
-local guiVisible = true
-closeBtn.MouseButton1Click:Connect(function()
-    guiVisible = not guiVisible
-    mainFrame.Visible = guiVisible
-end)
-
--- =====================
---      TAB SYSTEM
--- =====================
-local tabBar = Instance.new("Frame")
-tabBar.Size = UDim2.new(1, -20, 0, 32)
-tabBar.Position = UDim2.new(0, 10, 0, 50)
-tabBar.BackgroundTransparency = 1
-tabBar.Parent = mainFrame
-
-local tabLayout = Instance.new("UIListLayout")
-tabLayout.FillDirection = Enum.FillDirection.Horizontal
-tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-tabLayout.Padding = UDim.new(0, 5)
-tabLayout.Parent = tabBar
-
-local contentFrame = Instance.new("ScrollingFrame")
-contentFrame.Size = UDim2.new(1, -20, 1, -100)
-contentFrame.Position = UDim2.new(0, 10, 0, 90)
-contentFrame.BackgroundTransparency = 1
-contentFrame.BorderSizePixel = 0
-contentFrame.ScrollBarThickness = 3
-contentFrame.ScrollBarImageColor3 = Color3.fromRGB(150, 0, 255)
-contentFrame.Parent = mainFrame
-
-local contentLayout = Instance.new("UIListLayout")
-contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-contentLayout.Padding = UDim.new(0, 6)
-contentLayout.Parent = contentFrame
-
-local contentPadding = Instance.new("UIPadding")
-contentPadding.PaddingTop = UDim.new(0, 5)
-contentPadding.Parent = contentFrame
-
-local tabs = {}
-local tabContents = {}
-local activeTab = nil
-
-local function updateCanvas()
-    contentFrame.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y + 10)
-end
-
-local function switchTab(name)
-    for tabName, content in pairs(tabContents) do
-        for _, obj in ipairs(content) do
-            obj.Visible = tabName == name
-        end
-    end
-    for tabName, btn in pairs(tabs) do
-        if tabName == name then
-            TweenService:Create(btn, TweenInfo.new(0.2), {
-                BackgroundColor3 = Color3.fromRGB(120, 0, 200),
-                TextColor3 = Color3.fromRGB(255, 255, 255)
-            }):Play()
-        else
-            TweenService:Create(btn, TweenInfo.new(0.2), {
-                BackgroundColor3 = Color3.fromRGB(30, 0, 50),
-                TextColor3 = Color3.fromRGB(150, 100, 200)
-            }):Play()
-        end
-    end
-    activeTab = name
-    updateCanvas()
-end
-
-local function makeTab(name, order)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 68, 1, 0)
-    btn.BackgroundColor3 = Color3.fromRGB(30, 0, 50)
-    btn.BorderSizePixel = 0
-    btn.Text = name
-    btn.TextColor3 = Color3.fromRGB(150, 100, 200)
-    btn.TextSize = 11
-    btn.Font = Enum.Font.GothamBold
-    btn.LayoutOrder = order
-    btn.Parent = tabBar
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
-
-    tabs[name] = btn
-    tabContents[name] = {}
-
-    btn.MouseButton1Click:Connect(function()
-        switchTab(name)
-    end)
-
-    return name
-end
-
--- =====================
---      UI ELEMENTS
--- =====================
-local function makeElement(tabName)
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, 0, 0, 36)
-    frame.BackgroundColor3 = Color3.fromRGB(20, 0, 35)
-    frame.BackgroundTransparency = 0.3
-    frame.BorderSizePixel = 0
-    frame.Visible = false
-    frame.Parent = contentFrame
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
-    local s = Instance.new("UIStroke")
-    s.Color = Color3.fromRGB(80, 0, 130)
-    s.Thickness = 1
-    s.Parent = frame
-    table.insert(tabContents[tabName], frame)
-    return frame
-end
-
-local function notify(title, content)
-    local notifGui = Instance.new("ScreenGui")
-    notifGui.Name = "DLXENotif"
-    notifGui.ResetOnSpawn = false
-    notifGui.Parent = playerGui
-
-    local notifFrame = Instance.new("Frame")
-    notifFrame.Size = UDim2.new(0, 260, 0, 55)
-    notifFrame.Position = UDim2.new(1, -280, 1, -80)
-    notifFrame.BackgroundColor3 = Color3.fromRGB(20, 0, 35)
-    notifFrame.BorderSizePixel = 0
-    notifFrame.BackgroundTransparency = 0.1
-    notifFrame.Parent = notifGui
-    Instance.new("UICorner", notifFrame).CornerRadius = UDim.new(0, 10)
-
-    local ns = Instance.new("UIStroke")
-    ns.Color = Color3.fromRGB(150, 0, 255)
-    ns.Thickness = 1
-    ns.Parent = notifFrame
-
-    local ng = Instance.new("UIGradient")
-    ng.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 0, 120)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
-    })
-    ng.Rotation = 135
-    ng.Parent = notifFrame
-
-    local nt = Instance.new("TextLabel")
-    nt.Size = UDim2.new(1, -10, 0, 20)
-    nt.Position = UDim2.new(0, 10, 0, 5)
-    nt.BackgroundTransparency = 1
-    nt.Text = title
-    nt.TextColor3 = Color3.fromRGB(200, 100, 255)
-    nt.TextSize = 12
-    nt.Font = Enum.Font.GothamBold
-    nt.TextXAlignment = Enum.TextXAlignment.Left
-    nt.Parent = notifFrame
-
-    local nc = Instance.new("TextLabel")
-    nc.Size = UDim2.new(1, -10, 0, 20)
-    nc.Position = UDim2.new(0, 10, 0, 25)
-    nc.BackgroundTransparency = 1
-    nc.Text = content
-    nc.TextColor3 = Color3.fromRGB(220, 180, 255)
-    nc.TextSize = 11
-    nc.Font = Enum.Font.Gotham
-    nc.TextXAlignment = Enum.TextXAlignment.Left
-    nc.Parent = notifFrame
-
-    notifFrame.Position = UDim2.new(1, 10, 1, -80)
-    TweenService:Create(notifFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
-        Position = UDim2.new(1, -280, 1, -80)
-    }):Play()
-
-    task.delay(3, function()
-        TweenService:Create(notifFrame, TweenInfo.new(0.3), {
-            Position = UDim2.new(1, 10, 1, -80)
-        }):Play()
-        task.wait(0.3)
-        notifGui:Destroy()
-    end)
-end
-
-local function addLabel(tabName, text)
-    local frame = makeElement(tabName)
-    frame.Size = UDim2.new(1, 0, 0, 28)
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1, -10, 1, 0)
-    lbl.Position = UDim2.new(0, 10, 0, 0)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = text
-    lbl.TextColor3 = Color3.fromRGB(180, 100, 255)
-    lbl.TextSize = 11
-    lbl.Font = Enum.Font.Gotham
-    lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.Parent = frame
-end
-
-local function addButton(tabName, text, callback)
-    local frame = makeElement(tabName)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -16, 1, -8)
-    btn.Position = UDim2.new(0, 8, 0, 4)
-    btn.BackgroundColor3 = Color3.fromRGB(80, 0, 130)
-    btn.BorderSizePixel = 0
-    btn.Text = text
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.TextSize = 12
-    btn.Font = Enum.Font.GothamBold
-    btn.Parent = frame
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-
-    btn.MouseButton1Click:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.1), {
-            BackgroundColor3 = Color3.fromRGB(150, 0, 220)
-        }):Play()
-        task.wait(0.1)
-        TweenService:Create(btn, TweenInfo.new(0.1), {
-            BackgroundColor3 = Color3.fromRGB(80, 0, 130)
-        }):Play()
-        callback()
-    end)
-
-    btn.TouchTap:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.1), {
-            BackgroundColor3 = Color3.fromRGB(150, 0, 220)
-        }):Play()
-        task.wait(0.1)
-        TweenService:Create(btn, TweenInfo.new(0.1), {
-            BackgroundColor3 = Color3.fromRGB(80, 0, 130)
-        }):Play()
-        callback()
-    end)
-end
-
-local function addToggle(tabName, text, default, callback)
-    local frame = makeElement(tabName)
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1, -60, 1, 0)
-    lbl.Position = UDim2.new(0, 10, 0, 0)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = text
-    lbl.TextColor3 = Color3.fromRGB(220, 180, 255)
-    lbl.TextSize = 12
-    lbl.Font = Enum.Font.GothamBold
-    lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.Parent = frame
-
-    local toggleTrack = Instance.new("Frame")
-    toggleTrack.Size = UDim2.new(0, 44, 0, 22)
-    toggleTrack.Position = UDim2.new(1, -52, 0.5, -11)
-    toggleTrack.BackgroundColor3 = default and Color3.fromRGB(120, 0, 200) or Color3.fromRGB(40, 0, 60)
-    toggleTrack.BorderSizePixel = 0
-    toggleTrack.Parent = frame
-    Instance.new("UICorner", toggleTrack).CornerRadius = UDim.new(1, 0)
-
-    local toggleKnob = Instance.new("Frame")
-    toggleKnob.Size = UDim2.new(0, 16, 0, 16)
-    toggleKnob.Position = default and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)
-    toggleKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    toggleKnob.BorderSizePixel = 0
-    toggleKnob.Parent = toggleTrack
-    Instance.new("UICorner", toggleKnob).CornerRadius = UDim.new(1, 0)
-
-    local value = default
-    local function toggle()
-        value = not value
-        TweenService:Create(toggleTrack, TweenInfo.new(0.2), {
-            BackgroundColor3 = value and Color3.fromRGB(120, 0, 200) or Color3.fromRGB(40, 0, 60)
-        }):Play()
-        TweenService:Create(toggleKnob, TweenInfo.new(0.2, Enum.EasingStyle.Back), {
-            Position = value and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)
-        }):Play()
-        callback(value)
-    end
-
-    frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            toggle()
-        end
-    end)
-    toggleTrack.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            toggle()
-        end
-    end)
-end
-
-local function addSlider(tabName, text, min, max, default, callback)
-    local frame = makeElement(tabName)
-    frame.Size = UDim2.new(1, 0, 0, 52)
-
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1, -60, 0, 18)
-    lbl.Position = UDim2.new(0, 10, 0, 4)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = text
-    lbl.TextColor3 = Color3.fromRGB(220, 180, 255)
-    lbl.TextSize = 12
-    lbl.Font = Enum.Font.GothamBold
-    lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.Parent = frame
-
-    local valLabel = Instance.new("TextLabel")
-    valLabel.Size = UDim2.new(0, 50, 0, 18)
-    valLabel.Position = UDim2.new(1, -58, 0, 4)
-    valLabel.BackgroundTransparency = 1
-    valLabel.Text = tostring(default)
-    valLabel.TextColor3 = Color3.fromRGB(150, 0, 255)
-    valLabel.TextSize = 12
-    valLabel.Font = Enum.Font.GothamBold
-    valLabel.TextXAlignment = Enum.TextXAlignment.Right
-    valLabel.Parent = frame
-
-    local track = Instance.new("Frame")
-    track.Size = UDim2.new(1, -20, 0, 6)
-    track.Position = UDim2.new(0, 10, 0, 32)
-    track.BackgroundColor3 = Color3.fromRGB(40, 0, 60)
-    track.BorderSizePixel = 0
-    track.Parent = frame
-    Instance.new("UICorner", track).CornerRadius = UDim.new(1, 0)
-
-    local fill = Instance.new("Frame")
-    fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
-    fill.BackgroundColor3 = Color3.fromRGB(150, 0, 255)
-    fill.BorderSizePixel = 0
-    fill.Parent = track
-    Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
-
-    local knob = Instance.new("Frame")
-    knob.Size = UDim2.new(0, 14, 0, 14)
-    knob.Position = UDim2.new((default - min) / (max - min), -7, 0.5, -7)
-    knob.BackgroundColor3 = Color3.fromRGB(200, 100, 255)
-    knob.BorderSizePixel = 0
-    knob.Parent = track
-    Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
-
-    local dragging = false
-
-    local function updateSlider(inputPos)
-        local trackPos = track.AbsolutePosition.X
-        local trackSize = track.AbsoluteSize.X
-        local relative = math.clamp((inputPos - trackPos) / trackSize, 0, 1)
-        local value = math.floor(min + (max - min) * relative)
-        fill.Size = UDim2.new(relative, 0, 1, 0)
-        knob.Position = UDim2.new(relative, -7, 0.5, -7)
-        valLabel.Text = tostring(value)
-        callback(value)
-    end
-
-    track.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            updateSlider(input.Position.X)
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            updateSlider(input.Position.X)
-        end
-    end)
-
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
-        end
-    end)
-end
-
-local function addSection(tabName, text)
-    local frame = makeElement(tabName)
-    frame.Size = UDim2.new(1, 0, 0, 22)
-    frame.BackgroundTransparency = 1
-
-    local line = Instance.new("Frame")
-    line.Size = UDim2.new(1, 0, 0, 1)
-    line.Position = UDim2.new(0, 0, 0.5, 0)
-    line.BackgroundColor3 = Color3.fromRGB(80, 0, 130)
-    line.BorderSizePixel = 0
-    line.Parent = frame
-
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(0, 120, 1, 0)
-    lbl.Position = UDim2.new(0.5, -60, 0, 0)
-    lbl.BackgroundColor3 = Color3.fromRGB(15, 0, 25)
-    lbl.BorderSizePixel = 0
-    lbl.Text = text
-    lbl.TextColor3 = Color3.fromRGB(150, 0, 255)
-    lbl.TextSize = 10
-    lbl.Font = Enum.Font.GothamBold
-    lbl.TextXAlignment = Enum.TextXAlignment.Center
-    lbl.Parent = frame
-end
-
--- =====================
---      BUILD TABS
--- =====================
-local TREES = makeTab("Trees", 1)
-local BRING = makeTab("Bring", 2)
-local DISCORD = makeTab("Discord", 3)
+local DiscordTab = Window:CreateTab({
+    Name = "Discord",
+    Icon = "message-circle",
+})
 
 -- =====================
 --      HELPERS
@@ -585,7 +109,12 @@ local function bringItems(nameList, label)
         end
     end
 
-    notify(label, count > 0 and "Brought " .. count .. " item(s)!" or "No items found!")
+    Luna:Notification({
+        Title = label,
+        Content = count > 0 and "Brought " .. count .. " item(s)!" or "No items found!",
+        Icon = "package",
+        Duration = 3,
+    })
 end
 
 -- =====================
@@ -599,4 +128,370 @@ end
 
 local function disableFreecam()
     freecamEnabled = false
-    camera.Cam
+    camera.CameraType = Enum.CameraType.Custom
+    local character = player.Character
+    if character then
+        camera.CameraSubject = character:FindFirstChildOfClass("Humanoid")
+    end
+end
+
+RunService.RenderStepped:Connect(function()
+    if freecamEnabled then
+        camera.CFrame = camCFrame
+    end
+end)
+
+local lastTouchPos = nil
+UserInputService.TouchStarted:Connect(function(touch)
+    lastTouchPos = touch.Position
+end)
+UserInputService.TouchEnded:Connect(function()
+    lastTouchPos = nil
+end)
+UserInputService.TouchMoved:Connect(function(touch)
+    if freecamEnabled and lastTouchPos then
+        local delta = touch.Position - lastTouchPos
+        lastTouchPos = touch.Position
+        camCFrame = camCFrame * CFrame.Angles(0, -delta.X * 0.005, 0)
+    end
+end)
+
+local freecamGui = Instance.new("ScreenGui")
+freecamGui.Name = "FreecamControls"
+freecamGui.ResetOnSpawn = false
+freecamGui.Parent = player.PlayerGui
+
+local btnFrame = Instance.new("Frame")
+btnFrame.Size = UDim2.new(0, 170, 0, 170)
+btnFrame.Position = UDim2.new(1, -190, 1, -190)
+btnFrame.BackgroundTransparency = 1
+btnFrame.Visible = false
+btnFrame.Parent = freecamGui
+
+local function makeBtn(label, pos, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 50, 0, 50)
+    btn.Position = pos
+    btn.BackgroundColor3 = Color3.fromRGB(40, 0, 70)
+    btn.TextColor3 = Color3.fromRGB(200, 100, 255)
+    btn.Text = label
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 16
+    btn.BorderSizePixel = 0
+    btn.Parent = btnFrame
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
+
+    local held = false
+    btn.MouseButton1Down:Connect(function() held = true end)
+    btn.MouseButton1Up:Connect(function() held = false end)
+    btn.TouchStarted:Connect(function() held = true end)
+    btn.TouchEnded:Connect(function() held = false end)
+
+    RunService.RenderStepped:Connect(function()
+        if held and freecamEnabled then callback() end
+    end)
+end
+
+makeBtn("W",  UDim2.new(0, 60,  0, 0),   function() camCFrame = camCFrame * CFrame.new(0, 0, -camSpeed) end)
+makeBtn("S",  UDim2.new(0, 60,  0, 120), function() camCFrame = camCFrame * CFrame.new(0, 0, camSpeed) end)
+makeBtn("A",  UDim2.new(0, 0,   0, 60),  function() camCFrame = camCFrame * CFrame.new(-camSpeed, 0, 0) end)
+makeBtn("D",  UDim2.new(0, 120, 0, 60),  function() camCFrame = camCFrame * CFrame.new(camSpeed, 0, 0) end)
+makeBtn("Up", UDim2.new(0, 60,  0, 60),  function() camCFrame = camCFrame * CFrame.new(0, camSpeed, 0) end)
+makeBtn("Dn", UDim2.new(0, 0,   0, 0),   function() camCFrame = camCFrame * CFrame.new(0, -camSpeed, 0) end)
+
+-- =====================
+--      RUN FUNCTION
+-- =====================
+local function run()
+    enableFreecam()
+    btnFrame.Visible = true
+
+    Luna:Notification({
+        Title = "Tree Farmer",
+        Content = "Starting...",
+        Icon = "tree",
+        Duration = 2,
+    })
+
+    task.wait(1)
+
+    local axe = getAxe()
+    if not axe then
+        Luna:Notification({
+            Title = "Tree Farmer",
+            Content = "Old Axe not found!",
+            Icon = "alert-triangle",
+            Duration = 3,
+        })
+        running = false
+        disableFreecam()
+        btnFrame.Visible = false
+        return
+    end
+
+    local trees = findSmallTrees()
+    if #trees == 0 then
+        Luna:Notification({
+            Title = "Tree Farmer",
+            Content = "No Small Trees found!",
+            Icon = "alert-triangle",
+            Duration = 3,
+        })
+        running = false
+        disableFreecam()
+        btnFrame.Visible = false
+        return
+    end
+
+    Luna:Notification({
+        Title = "Tree Farmer",
+        Content = "Found " .. #trees .. " trees. Chopping!",
+        Icon = "tree",
+        Duration = 3,
+    })
+
+    for i, tree in ipairs(trees) do
+        if not running then break end
+
+        local character = player.Character or player.CharacterAdded:Wait()
+        local rootPart = character:WaitForChild("HumanoidRootPart")
+        axe = getAxe()
+
+        if not axe then
+            Luna:Notification({
+                Title = "Tree Farmer",
+                Content = "Axe lost! Stopping.",
+                Icon = "alert-triangle",
+                Duration = 3,
+            })
+            running = false
+            break
+        end
+
+        if tree and tree.Parent then
+            local primary = tree.PrimaryPart or tree:FindFirstChildWhichIsA("BasePart")
+            if primary then
+                rootPart.CFrame = primary.CFrame * CFrame.new(0, 3, 3)
+                task.wait(TRAVEL_DELAY)
+
+                for hit = 1, HITS_PER_TREE do
+                    if not running then break end
+                    if not tree or not tree.Parent then break end
+                    axe = getAxe()
+                    if not axe then break end
+
+                    remote:InvokeServer(
+                        tree, axe,
+                        "9999_1076307479",
+                        rootPart.CFrame,
+                        true
+                    )
+                    task.wait(HIT_DELAY)
+                end
+            end
+        end
+        task.wait(0.2)
+    end
+
+    if running then
+        Luna:Notification({
+            Title = "Tree Farmer",
+            Content = "Done! All trees chopped.",
+            Icon = "check",
+            Duration = 4,
+        })
+    else
+        Luna:Notification({
+            Title = "Tree Farmer",
+            Content = "Stopped.",
+            Icon = "x",
+            Duration = 2,
+        })
+    end
+
+    running = false
+    disableFreecam()
+    btnFrame.Visible = false
+end
+
+-- =====================
+--      TREES TAB
+-- =====================
+TreeTab:CreateSection({ Name = "Farming" })
+
+TreeTab:CreateToggle({
+    Name = "Tree Farmer",
+    Description = "Auto chops all Small Trees",
+    Default = false,
+    Flag = "TreeFarmer",
+    Callback = function(value)
+        running = value
+        if running then
+            task.spawn(run)
+        else
+            Luna:Notification({
+                Title = "Tree Farmer",
+                Content = "Stopped.",
+                Icon = "x",
+                Duration = 2,
+            })
+            disableFreecam()
+            btnFrame.Visible = false
+        end
+    end
+})
+
+TreeTab:CreateSection({ Name = "Freecam" })
+
+TreeTab:CreateToggle({
+    Name = "Enable Freecam",
+    Description = "Detaches camera while farming",
+    Default = false,
+    Flag = "FreecamToggle",
+    Callback = function(value)
+        if value then
+            enableFreecam()
+            btnFrame.Visible = true
+        else
+            disableFreecam()
+            btnFrame.Visible = false
+        end
+    end
+})
+
+TreeTab:CreateSlider({
+    Name = "Freecam Speed",
+    Description = "How fast the camera moves",
+    Min = 1,
+    Max = 20,
+    Default = 5,
+    Flag = "FreecamSpeed",
+    Callback = function(value)
+        camSpeed = value * 0.1
+    end
+})
+
+TreeTab:CreateSection({ Name = "Settings" })
+
+TreeTab:CreateSlider({
+    Name = "Hits Per Tree",
+    Description = "Max hits before moving to next tree",
+    Min = 1,
+    Max = 500,
+    Default = 500,
+    Flag = "HitsPerTree",
+    Callback = function(value)
+        HITS_PER_TREE = value
+    end
+})
+
+TreeTab:CreateSlider({
+    Name = "Hit Delay (ms)",
+    Description = "Delay between each hit",
+    Min = 1,
+    Max = 2000,
+    Default = 10,
+    Flag = "HitDelay",
+    Callback = function(value)
+        HIT_DELAY = value / 1000
+    end
+})
+
+-- =====================
+--      BRING TAB
+-- =====================
+BringTab:CreateSection({ Name = "Items" })
+
+BringTab:CreateButton({
+    Name = "Wood / Logs",
+    Description = "Brings all logs to you",
+    Callback = function()
+        bringItems({"Log", "Small Log", "Wood"}, "Bring Wood")
+    end
+})
+
+BringTab:CreateButton({
+    Name = "Metal / Scraps",
+    Description = "Brings all metal and scraps",
+    Callback = function()
+        bringItems(METAL_NAMES, "Bring Metal")
+    end
+})
+
+BringTab:CreateButton({
+    Name = "Food",
+    Description = "Brings all food items",
+    Callback = function()
+        bringItems(FOOD_NAMES, "Bring Food")
+    end
+})
+
+BringTab:CreateButton({
+    Name = "Ammunition",
+    Description = "Brings all ammo",
+    Callback = function()
+        bringItems(AMMO_NAMES, "Bring Ammo")
+    end
+})
+
+BringTab:CreateButton({
+    Name = "Weapons",
+    Description = "Brings all weapons",
+    Callback = function()
+        bringItems(WEAPON_NAMES, "Bring Weapons")
+    end
+})
+
+BringTab:CreateButton({
+    Name = "Fuel",
+    Description = "Brings all fuel items",
+    Callback = function()
+        bringItems(FUEL_NAMES, "Bring Fuel")
+    end
+})
+
+BringTab:CreateButton({
+    Name = "Heals",
+    Description = "Brings all healing items",
+    Callback = function()
+        bringItems(HEAL_NAMES, "Bring Heals")
+    end
+})
+
+BringTab:CreateSection({ Name = "Bring All" })
+
+BringTab:CreateButton({
+    Name = "ALL ITEMS",
+    Description = "Brings every item to you",
+    Callback = function()
+        local all = {}
+        for _, t in ipairs({{"Log", "Small Log", "Wood"}, FOOD_NAMES, METAL_NAMES, AMMO_NAMES, FUEL_NAMES, HEAL_NAMES, WEAPON_NAMES}) do
+            for _, n in ipairs(t) do table.insert(all, n) end
+        end
+        bringItems(all, "Bring Everything")
+    end
+})
+
+-- =====================
+--      DISCORD TAB
+-- =====================
+DiscordTab:CreateSection({ Name = "Community" })
+
+DiscordTab:CreateParagraph({
+    Title = "Join the Discord",
+    Content = "discord.gg/6egUXcwmdc"
+})
+
+DiscordTab:CreateButton({
+    Name = "Copy Discord Link",
+    Description = "Copies the link to your clipboard",
+    Callback = function()
+        setclipboard("discord.gg/6egUXcwmdc")
+        Luna:Notification({
+            Title = "Discord",
+            Content = "Link copied to clipboard!",
+            Icon = "message-circle",
+            Duration = 3,
+        })
+    end
+})
