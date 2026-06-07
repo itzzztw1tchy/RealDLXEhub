@@ -28,37 +28,14 @@ local Luna = loadstring(game:HttpGet("https://raw.githubusercontent.com/Nebula-S
 local Window = Luna:CreateWindow({
     Name = "DLXE HUB",
     Subtitle = "by tw1tchy/DLXE/mentalplays",
-    LogoID = nil,
-    LoadingEnabled = true,
-    LoadingTitle = "DLXE HUB",
-    LoadingSubtitle = "99 Nights in the Forest",
-    ConfigSettings = {
-        RootFolder = nil,
-        ConfigFolder = "DLXEHUB"
-    },
+    LoadingEnabled = false,
+    ConfigSettings = { RootFolder = nil, ConfigFolder = "DLXEHUB" },
     KeySystem = false,
 })
 
-local TreeTab = Window:CreateTab({
-    Name = "Trees",
-    Icon = "forest",
-    ImageSource = "Material",
-    ShowTitle = true
-})
-
-local BringTab = Window:CreateTab({
-    Name = "Bring",
-    Icon = "inventory_2",
-    ImageSource = "Material",
-    ShowTitle = true
-})
-
-local DiscordTab = Window:CreateTab({
-    Name = "Discord",
-    Icon = "forum",
-    ImageSource = "Material",
-    ShowTitle = true
-})
+local TreeTab = Window:CreateTab({ Name = "Trees", Icon = "forest", ImageSource = "Material", ShowTitle = true })
+local BringTab = Window:CreateTab({ Name = "Bring", Icon = "inventory_2", ImageSource = "Material", ShowTitle = true })
+local DiscordTab = Window:CreateTab({ Name = "Discord", Icon = "forum", ImageSource = "Material", ShowTitle = true })
 
 -- =====================
 --      HELPERS
@@ -208,23 +185,12 @@ local function run()
     enableFreecam()
     btnFrame.Visible = true
 
-    Luna:Notification({
-        Title = "Tree Farmer",
-        Icon = "forest",
-        ImageSource = "Material",
-        Content = "Starting..."
-    })
-
+    Luna:Notification({ Title = "Tree Farmer", Icon = "forest", ImageSource = "Material", Content = "Starting..." })
     task.wait(1)
 
     local axe = getAxe()
     if not axe then
-        Luna:Notification({
-            Title = "Tree Farmer",
-            Icon = "warning",
-            ImageSource = "Material",
-            Content = "Old Axe not found!"
-        })
+        Luna:Notification({ Title = "Tree Farmer", Icon = "warning", ImageSource = "Material", Content = "Old Axe not found!" })
         running = false
         disableFreecam()
         btnFrame.Visible = false
@@ -233,24 +199,14 @@ local function run()
 
     local trees = findSmallTrees()
     if #trees == 0 then
-        Luna:Notification({
-            Title = "Tree Farmer",
-            Icon = "warning",
-            ImageSource = "Material",
-            Content = "No Small Trees found!"
-        })
+        Luna:Notification({ Title = "Tree Farmer", Icon = "warning", ImageSource = "Material", Content = "No Small Trees found!" })
         running = false
         disableFreecam()
         btnFrame.Visible = false
         return
     end
 
-    Luna:Notification({
-        Title = "Tree Farmer",
-        Icon = "forest",
-        ImageSource = "Material",
-        Content = "Found " .. #trees .. " trees. Chopping!"
-    })
+    Luna:Notification({ Title = "Tree Farmer", Icon = "forest", ImageSource = "Material", Content = "Found " .. #trees .. " trees!" })
 
     for i, tree in ipairs(trees) do
         if not running then break end
@@ -260,12 +216,7 @@ local function run()
         axe = getAxe()
 
         if not axe then
-            Luna:Notification({
-                Title = "Tree Farmer",
-                Icon = "warning",
-                ImageSource = "Material",
-                Content = "Axe lost! Stopping."
-            })
+            Luna:Notification({ Title = "Tree Farmer", Icon = "warning", ImageSource = "Material", Content = "Axe lost! Stopping." })
             running = false
             break
         end
@@ -281,13 +232,7 @@ local function run()
                     if not tree or not tree.Parent then break end
                     axe = getAxe()
                     if not axe then break end
-
-                    remote:InvokeServer(
-                        tree, axe,
-                        "9999_1076307479",
-                        rootPart.CFrame,
-                        true
-                    )
+                    remote:InvokeServer(tree, axe, "9999_1076307479", rootPart.CFrame, true)
                     task.wait(HIT_DELAY)
                 end
             end
@@ -296,19 +241,9 @@ local function run()
     end
 
     if running then
-        Luna:Notification({
-            Title = "Tree Farmer",
-            Icon = "check_circle",
-            ImageSource = "Material",
-            Content = "Done! All trees chopped."
-        })
+        Luna:Notification({ Title = "Tree Farmer", Icon = "check_circle", ImageSource = "Material", Content = "Done! All trees chopped." })
     else
-        Luna:Notification({
-            Title = "Tree Farmer",
-            Icon = "cancel",
-            ImageSource = "Material",
-            Content = "Stopped."
-        })
+        Luna:Notification({ Title = "Tree Farmer", Icon = "cancel", ImageSource = "Material", Content = "Stopped." })
     end
 
     running = false
@@ -323,19 +258,13 @@ TreeTab:CreateSection("Farming")
 
 TreeTab:CreateToggle({
     Name = "Tree Farmer",
-    Description = "Auto chops all Small Trees",
     CurrentValue = false,
     Callback = function(value)
         running = value
         if running then
             task.spawn(run)
         else
-            Luna:Notification({
-                Title = "Tree Farmer",
-                Icon = "cancel",
-                ImageSource = "Material",
-                Content = "Stopped."
-            })
+            Luna:Notification({ Title = "Tree Farmer", Icon = "cancel", ImageSource = "Material", Content = "Stopped." })
             disableFreecam()
             btnFrame.Visible = false
         end
@@ -346,7 +275,6 @@ TreeTab:CreateSection("Freecam")
 
 TreeTab:CreateToggle({
     Name = "Enable Freecam",
-    Description = "Detaches camera while farming",
     CurrentValue = false,
     Callback = function(value)
         if value then
@@ -398,65 +326,43 @@ BringTab:CreateSection("Items")
 
 BringTab:CreateButton({
     Name = "Wood / Logs",
-    Description = "Brings all logs to you",
-    Callback = function()
-        bringItems({"Log", "Small Log", "Wood"}, "Bring Wood")
-    end
+    Callback = function() bringItems({"Log", "Small Log", "Wood"}, "Bring Wood") end
 })
 
 BringTab:CreateButton({
     Name = "Metal / Scraps",
-    Description = "Brings all metal and scraps",
-    Callback = function()
-        bringItems(METAL_NAMES, "Bring Metal")
-    end
+    Callback = function() bringItems(METAL_NAMES, "Bring Metal") end
 })
 
 BringTab:CreateButton({
     Name = "Food",
-    Description = "Brings all food items",
-    Callback = function()
-        bringItems(FOOD_NAMES, "Bring Food")
-    end
+    Callback = function() bringItems(FOOD_NAMES, "Bring Food") end
 })
 
 BringTab:CreateButton({
     Name = "Ammunition",
-    Description = "Brings all ammo",
-    Callback = function()
-        bringItems(AMMO_NAMES, "Bring Ammo")
-    end
+    Callback = function() bringItems(AMMO_NAMES, "Bring Ammo") end
 })
 
 BringTab:CreateButton({
     Name = "Weapons",
-    Description = "Brings all weapons",
-    Callback = function()
-        bringItems(WEAPON_NAMES, "Bring Weapons")
-    end
+    Callback = function() bringItems(WEAPON_NAMES, "Bring Weapons") end
 })
 
 BringTab:CreateButton({
     Name = "Fuel",
-    Description = "Brings all fuel items",
-    Callback = function()
-        bringItems(FUEL_NAMES, "Bring Fuel")
-    end
+    Callback = function() bringItems(FUEL_NAMES, "Bring Fuel") end
 })
 
 BringTab:CreateButton({
     Name = "Heals",
-    Description = "Brings all healing items",
-    Callback = function()
-        bringItems(HEAL_NAMES, "Bring Heals")
-    end
+    Callback = function() bringItems(HEAL_NAMES, "Bring Heals") end
 })
 
 BringTab:CreateSection("Bring All")
 
 BringTab:CreateButton({
     Name = "ALL ITEMS",
-    Description = "Brings every item to you",
     Callback = function()
         local all = {}
         for _, t in ipairs({{"Log", "Small Log", "Wood"}, FOOD_NAMES, METAL_NAMES, AMMO_NAMES, FUEL_NAMES, HEAL_NAMES, WEAPON_NAMES}) do
@@ -478,16 +384,8 @@ DiscordTab:CreateParagraph({
 
 DiscordTab:CreateButton({
     Name = "Copy Discord Link",
-    Description = "Copies the invite to clipboard",
     Callback = function()
         setclipboard("discord.gg/6egUXcwmdc")
-        Luna:Notification({
-            Title = "Discord",
-            Icon = "forum",
-            ImageSource = "Material",
-            Content = "Link copied to clipboard!"
-        })
+        Luna:Notification({ Title = "Discord", Icon = "forum", ImageSource = "Material", Content = "Link copied!" })
     end
 })
-
-Luna:LoadAutoloadConfig()
